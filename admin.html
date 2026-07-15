@@ -437,8 +437,10 @@ async function completeSetup() {
   }
   err.style.display = 'none';
   // Extract gist ID from URL
+  // URL: https://gist.githubusercontent.com/USER/GISTID/raw/...
+  // split: [https:, '', host, USER, GISTID, raw, ...]
   const parts = url.split('/');
-  const gistId = parts[5]; // https://gist.githubusercontent.com/USER/GISTID/raw/FILE
+  const gistId = parts[4];
   localStorage.setItem(GIST_KEY, url);
   localStorage.setItem(TOKEN_KEY, token);
   localStorage.setItem(GIST_ID_KEY, gistId);
@@ -531,7 +533,7 @@ function saveConfig() {
   const parts = url.split('/');
   localStorage.setItem(GIST_KEY, url);
   localStorage.setItem(TOKEN_KEY, token);
-  localStorage.setItem(GIST_ID_KEY, parts[5]);
+  localStorage.setItem(GIST_ID_KEY, parts[4]); // parts[4] = GISTID
   document.getElementById('gist-url-display').textContent = url.replace('https://gist.githubusercontent.com/','gist.githubusercontent.com/');
   showToast('配置已保存', 'ok');
   fetchFromGist();
