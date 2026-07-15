@@ -439,11 +439,10 @@ async function completeSetup() {
     err.textContent = 'URL 格式不对，需以 https://gist.githubusercontent.com/ 开头'; err.style.display = 'block'; return;
   }
   err.style.display = 'none';
-  // Extract gist ID from URL
-  // URL: https://gist.githubusercontent.com/USER/GISTID/raw/...
-  // split: [https:, '', host, USER, GISTID, raw, ...]
-  const parts = url.split('/');
-  const gistId = parts[4];
+  // 用正则提取 Gist ID（32位十六进制），不依赖 URL 位置
+  const gistMatch = url.match(/\/([a-f0-9]{32})\//i);
+  if (!gistMatch) { err.textContent = '无法从 URL 中提取 Gist ID，请检查链接是否正确'; err.style.display = 'block'; return; }
+  const gistId = gistMatch[1];
   localStorage.setItem(GIST_KEY, url);
   localStorage.setItem(TOKEN_KEY, token);
   localStorage.setItem(GIST_ID_KEY, gistId);
@@ -538,8 +537,10 @@ function saveConfig() {
   const url   = document.getElementById('cfg-url').value.trim();
   const token = document.getElementById('cfg-token').value.trim();
   if (!url || !token) { showToast('请填写完整', 'er'); return; }
-  const parts = url.split('/');
-  const gistId = parts[4];
+  // 用正则提取 Gist ID（32位十六进制），彻底避免位置解析错误
+  const gistMatch = url.match(/\/([a-f0-9]{32})\//i);
+  if (!gistMatch) { showToast('URL 中找不到 Gist ID，请检查链接', 'er'); return; }
+  const gistId = gistMatch[1];
   localStorage.setItem(GIST_KEY, url);
   localStorage.setItem(TOKEN_KEY, token);
   localStorage.setItem(GIST_ID_KEY, gistId);
