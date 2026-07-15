@@ -333,7 +333,7 @@
 
       <!-- Token & Config -->
       <div class="side-panel">
-        <div class="side-panel-head">🔑 重新配置</div>
+        <div class="side-panel-head">🔑 配置 &amp; 诊断</div>
         <div class="side-panel-body">
           <div class="fg2">
             <label for="cfg-token">GitHub Token</label>
@@ -343,7 +343,10 @@
             <label for="cfg-url">Gist Raw URL</label>
             <input type="url" id="cfg-url" placeholder="https://gist.githubusercontent.com/…"/>
           </div>
-          <button onclick="saveConfig()" style="width:100%;background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--tx2);padding:9px;border-radius:var(--r8);font-family:'Outfit',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:var(--trf)">保存配置</button>
+          <button onclick="saveConfig()" style="width:100%;background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--tx2);padding:9px;border-radius:var(--r8);font-family:'Outfit',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:var(--trf);margin-bottom:8px">保存配置</button>
+          <button onclick="testGist()" style="width:100%;background:rgba(6,182,212,.12);border:1px solid rgba(6,182,212,.3);color:#67e8f9;padding:9px;border-radius:var(--r8);font-family:'Outfit',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:var(--trf);margin-bottom:8px">🔍 测试连接 &amp; 诊断</button>
+          <button onclick="clearAllConfig()" style="width:100%;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);color:#fca5a5;padding:9px;border-radius:var(--r8);font-family:'Outfit',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:var(--trf)">🗑 清除所有配置重来</button>
+          <div id="diag-output" style="margin-top:10px;font-size:.75rem;color:var(--tx3);word-break:break-all;line-height:1.6;display:none"></div>
         </div>
       </div>
 
@@ -499,12 +502,15 @@ async function pushToGist() {
   btn.classList.add('saving'); icon.textContent = '⏳';
 
   try {
-    const res = await fetch('https://api.github.com/gists/' + gistId, {
+    const apiUrl = 'https://api.github.com/gists/' + gistId;
+    console.log('[push] API URL:', apiUrl);
+    const res = await fetch(apiUrl, {
       method: 'PATCH',
       headers: {
-        'Authorization': 'token ' + token,
+        'Authorization': 'Bearer ' + token,
         'Content-Type': 'application/json',
         'Accept': 'application/vnd.github.v3+json',
+        'X-GitHub-Api-Version': '2022-11-28',
       },
       body: JSON.stringify({
         files: {
@@ -512,15 +518,17 @@ async function pushToGist() {
         }
       })
     });
+    const resBody = await res.json();
+    console.log('[push] response status:', res.status, resBody);
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.message || 'HTTP ' + res.status);
+      throw new Error('HTTP ' + res.status + ' · ' + (resBody.message || JSON.stringify(resBody)));
     }
     setStatus('ok', '已发布 · ' + new Date().toLocaleTimeString());
     showToast('✅ 已成功发布到 Gist！公开页刷新即可看到', 'ok');
   } catch(e) {
     showToast('发布失败: ' + e.message, 'er');
     setStatus('er', '发布失败: ' + e.message);
+    alert('发布失败详情：\n\n' + e.message + '\n\n请检查：\n1. Token 是否有 gist 权限\n2. Gist 是否属于同一 GitHub 账号\n3. 打开 F12 控制台查看更多信息');
   } finally {
     btn.classList.remove('saving'); icon.textContent = '☁️';
   }
@@ -531,12 +539,52 @@ function saveConfig() {
   const token = document.getElementById('cfg-token').value.trim();
   if (!url || !token) { showToast('请填写完整', 'er'); return; }
   const parts = url.split('/');
+  const gistId = parts[4];
   localStorage.setItem(GIST_KEY, url);
   localStorage.setItem(TOKEN_KEY, token);
-  localStorage.setItem(GIST_ID_KEY, parts[4]); // parts[4] = GISTID
+  localStorage.setItem(GIST_ID_KEY, gistId);
   document.getElementById('gist-url-display').textContent = url.replace('https://gist.githubusercontent.com/','gist.githubusercontent.com/');
-  showToast('配置已保存', 'ok');
+  showToast('配置已保存，Gist ID: ' + gistId, 'ok');
   fetchFromGist();
+}
+
+function clearAllConfig() {
+  if (!confirm('清除所有配置（密码、Token、Gist 设置）？清除后需重新设置。')) return;
+  localStorage.clear();
+  location.reload();
+}
+
+async function testGist() {
+  const token  = localStorage.getItem(TOKEN_KEY);
+  const gistId = localStorage.getItem(GIST_ID_KEY);
+  const rawUrl = localStorage.getItem(GIST_KEY);
+  const diag = document.getElementById('diag-output');
+  diag.style.display = 'block';
+  diag.innerHTML = '⏳ 诊断中...';
+
+  let lines = [];
+  lines.push('Gist ID: ' + (gistId || '❌ 未设置'));
+  lines.push('Token: ' + (token ? token.slice(0,8) + '...' + token.slice(-4) : '❌ 未设置'));
+  lines.push('Raw URL: ' + (rawUrl ? rawUrl.slice(0,60) + '...' : '❌ 未设置'));
+
+  // Test read
+  try {
+    const r = await fetch('https://api.github.com/gists/' + gistId, {
+      headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github.v3+json' }
+    });
+    const body = await r.json();
+    if (r.ok) {
+      lines.push('✅ API 读取成功 (HTTP ' + r.status + ')');
+      lines.push('Gist 文件: ' + Object.keys(body.files || {}).join(', '));
+      lines.push('Gist 所有者: ' + (body.owner && body.owner.login));
+    } else {
+      lines.push('❌ API 读取失败 HTTP ' + r.status + ': ' + body.message);
+    }
+  } catch(e) {
+    lines.push('❌ 网络错误: ' + e.message);
+  }
+
+  diag.innerHTML = lines.join('<br/>');
 }
 
 // ══════════════════════════════════════════
