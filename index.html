@@ -277,23 +277,33 @@
 
 <script>
 // ══════════════════════════════════════════
-// ⚠️  CONFIG: 填入你的 Gist Raw URL
+// ⚠️  CONFIG: 填入你的 Gist 信息
 // ══════════════════════════════════════════
 const GIST_RAW_URL = 'https://gist.githubusercontent.com/xxhhwtxx/75344c7997d5e9d78fcf0ce2f8262de7/raw/data.json';
-// 格式示例:
-// 'https://gist.githubusercontent.com/你的用户名/GIST_ID/raw/data.json'
-// 管理端会自动把正确的 URL 告诉你
+const GIST_API_URL = 'https://api.github.com/gists/75344c7997d5e9d78fcf0ce2f8262de7';
+// Gist ID: 75344c7997d5e9d78fcf0ce2f8262de7
 
 const TAG = { hot:['tag-hot','🔥 热销'], new:['tag-new','✨ 新品'], sale:['tag-sale','💰 优惠'], popular:['tag-popular','⭐ 精选'] };
 
 async function loadData() {
+  // 优先用 GitHub Gist API（实时，无CDN缓存），失败则降级到 raw URL
   try {
-    // 加随机参数防止缓存，确保每次都拿最新数据
-    const url = GIST_RAW_URL + '?t=' + Date.now();
-    const res = await fetch(url);
+    const apiRes = await fetch(GIST_API_URL, {
+      headers: { 'Accept': 'application/vnd.github.v3+json' },
+      cache: 'no-store'
+    });
+    if (apiRes.ok) {
+      const gistData = await apiRes.json();
+      const rawContent = gistData.files && gistData.files['data.json'] && gistData.files['data.json'].content;
+      if (rawContent) return JSON.parse(rawContent);
+    }
+  } catch(e) { /* fallback */ }
+
+  // 降级：直接请求 raw URL
+  try {
+    const res = await fetch(GIST_RAW_URL + '?t=' + Date.now(), { cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    return data;
+    return await res.json();
   } catch(e) {
     return null;
   }
