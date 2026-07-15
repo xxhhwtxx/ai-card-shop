@@ -1,0 +1,44 @@
+{
+  "products": [
+    {
+      "id": "demo001",
+      "icon": "🤖",
+      "title": "ChatGPT Plus",
+      "desc": "GPT-4o 无限制，响应快速稳定，支持 DALL·E 图像生成。",
+      "price": "29.9",
+      "original": "139",
+      "unit": "/ 个月",
+      "tag": "hot",
+      "img": ""
+    },
+    {
+      "id": "demo002",
+      "icon": "🧠",
+      "title": "Claude Pro",
+      "desc": "Claude 3.5 Sonnet，超强代码与写作能力，长上下文 200K。",
+      "price": "39.9",
+      "original": "180",
+      "unit": "/ 个月",
+      "tag": "popular",
+      "img": ""
+    },
+    {
+      "id": "demo003",
+      "icon": "🎨",
+      "title": "Midjourney 标准版",
+      "desc": "无限制快速生成，访问 Web 界面，支持图像混合变体。",
+      "price": "49.9",
+      "original": "210",
+      "unit": "/ 个月",
+      "tag": "new",
+      "img": ""
+    }
+  ],
+  "settings": {
+    "email": "",
+    "siteName": "AI 卡密站",
+    "siteDesc": "精选 ChatGPT · Claude · Midjourney 等主流 AI 工具，安全稳定，即买即用，售后保障。",
+    "qrImage": "",
+    "contactExtra": ""
+  }
+}

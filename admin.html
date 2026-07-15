@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>管理后台 · AI 卡密站</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#070b14;--bg2:#0d1321;--card:rgba(255,255,255,.05);--card-hov:rgba(255,255,255,.09);
+      --border:rgba(255,255,255,.09);--accent:#8b5cf6;--accent2:#06b6d4;
+      --grad:linear-gradient(135deg,#8b5cf6 0%,#06b6d4 100%);
+      --tx:#f8fafc;--tx2:#94a3b8;--tx3:#475569;
+      --r8:8px;--r14:14px;--r20:20px;--r28:28px;
+      --tr:all .3s cubic-bezier(.4,0,.2,1);--trf:all .15s cubic-bezier(.4,0,.2,1);
+      --success:#10b981;--danger:#ef4444;--warn:#f59e0b;
+    }
+    html{scroll-behavior:smooth}
+    body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden}
+
+    /* BG */
+    .bg-orbs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+    .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.08;animation:orbF linear infinite}
+    .orb-1{width:500px;height:500px;background:#8b5cf6;top:-100px;left:-100px;animation-duration:20s}
+    .orb-2{width:400px;height:400px;background:#06b6d4;bottom:-100px;right:-100px;animation-duration:25s;animation-direction:reverse}
+    @keyframes orbF{0%{transform:translate(0,0)}50%{transform:translate(30px,-40px)}100%{transform:translate(0,0)}}
+
+    /* ═══ LOGIN SCREEN ═══ */
+    #login-screen{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:1rem}
+    .login-box{background:#111827;border:1px solid var(--border);border-radius:var(--r28);padding:48px;width:100%;max-width:420px;text-align:center;box-shadow:0 25px 80px rgba(0,0,0,.6)}
+    .login-logo{width:52px;height:52px;background:var(--grad);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:20px}
+    .login-box h1{font-size:1.5rem;font-weight:700;margin-bottom:6px}
+    .login-box p{color:var(--tx2);font-size:.9rem;margin-bottom:32px}
+    .fg{margin-bottom:16px;text-align:left}
+    .fg label{display:block;font-size:.8rem;font-weight:600;color:var(--tx2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+    .fg input{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r8);padding:12px 14px;color:var(--tx);font-family:'Outfit',sans-serif;font-size:.95rem;outline:none;transition:var(--trf)}
+    .fg input:focus{border-color:var(--accent);background:rgba(139,92,246,.07);box-shadow:0 0 0 3px rgba(139,92,246,.15)}
+    .btn-login{width:100%;background:var(--grad);border:none;color:#fff;padding:13px;border-radius:var(--r8);font-family:'Outfit',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:var(--tr);box-shadow:0 4px 14px rgba(139,92,246,.3);margin-top:8px}
+    .btn-login:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(139,92,246,.5)}
+    .login-err{color:#fca5a5;font-size:.85rem;margin-top:12px;display:none}
+
+    /* ═══ SETUP NOTICE ═══ */
+    #setup-screen{position:fixed;inset:0;z-index:998;background:var(--bg);display:none;align-items:center;justify-content:center;padding:1rem;overflow-y:auto}
+    .setup-box{background:#111827;border:1px solid var(--border);border-radius:var(--r28);padding:44px;width:100%;max-width:580px;box-shadow:0 25px 80px rgba(0,0,0,.6)}
+    .setup-box h2{font-size:1.4rem;font-weight:700;margin-bottom:6px}
+    .setup-box .step{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r14);padding:20px 22px;margin-bottom:12px}
+    .step-num{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;background:var(--grad);border-radius:50%;font-size:.78rem;font-weight:700;margin-right:8px;flex-shrink:0}
+    .step-title{font-size:.95rem;font-weight:600;margin-bottom:10px;display:flex;align-items:center}
+    .code-block{background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:var(--r8);padding:12px 14px;font-family:monospace;font-size:.82rem;color:#a5f3fc;white-space:pre-wrap;word-break:break-all;position:relative}
+    .copy-btn{position:absolute;top:8px;right:8px;background:rgba(139,92,246,.25);border:1px solid rgba(139,92,246,.35);color:#c4b5fd;padding:3px 10px;border-radius:6px;font-family:'Outfit',sans-serif;font-size:.75rem;font-weight:600;cursor:pointer;transition:var(--trf)}
+    .copy-btn:hover{background:rgba(139,92,246,.4)}
+    .fg-url{margin-top:12px}
+    .fg-url label{font-size:.8rem;font-weight:600;color:var(--tx2);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:.04em}
+    .fg-url input{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r8);padding:10px 14px;color:var(--tx);font-family:'Outfit',sans-serif;font-size:.88rem;outline:none;transition:var(--trf)}
+    .fg-url input:focus{border-color:var(--accent);background:rgba(139,92,246,.07);box-shadow:0 0 0 3px rgba(139,92,246,.15)}
+    .btn-complete{background:var(--grad);border:none;color:#fff;padding:12px 28px;border-radius:var(--r8);font-family:'Outfit',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;transition:var(--tr);box-shadow:0 4px 14px rgba(139,92,246,.3);width:100%;margin-top:8px}
+    .btn-complete:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(139,92,246,.5)}
+    .setup-err{color:#fca5a5;font-size:.83rem;margin-top:10px;display:none}
+
+    /* ═══ MAIN APP ═══ */
+    #app{display:none;position:relative;z-index:1}
+
+    /* TOPBAR */
+    .topbar{position:sticky;top:0;z-index:100;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);background:rgba(7,11,20,.8);border-bottom:1px solid var(--border);padding:0 2rem}
+    .topbar-in{max-width:1400px;margin:0 auto;height:62px;display:flex;align-items:center;justify-content:space-between}
+    .topbar-left{display:flex;align-items:center;gap:12px}
+    .tb-logo{width:32px;height:32px;background:var(--grad);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem}
+    .tb-title{font-size:1.05rem;font-weight:700}
+    .tb-badge{background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.35);color:#c4b5fd;padding:3px 10px;border-radius:100px;font-size:.72rem;font-weight:600;letter-spacing:.04em}
+    .topbar-right{display:flex;align-items:center;gap:12px}
+    .btn-preview{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--tx2);padding:7px 16px;border-radius:var(--r8);font-family:'Outfit',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:var(--trf);text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+    .btn-preview:hover{background:rgba(255,255,255,.1);color:var(--tx)}
+    .btn-logout{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.25);color:#fca5a5;padding:7px 14px;border-radius:var(--r8);font-family:'Outfit',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:var(--trf)}
+    .btn-logout:hover{background:rgba(239,68,68,.25)}
+    .btn-save-all{background:var(--grad);border:none;color:#fff;padding:7px 18px;border-radius:var(--r8);font-family:'Outfit',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;transition:var(--tr);box-shadow:0 4px 14px rgba(139,92,246,.3);display:flex;align-items:center;gap:6px}
+    .btn-save-all:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(139,92,246,.5)}
+    .btn-save-all.saving{opacity:.7;pointer-events:none}
+
+    /* LAYOUT */
+    .app-body{max-width:1400px;margin:0 auto;padding:28px 2rem;display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start}
+
+    /* PANEL */
+    .panel{background:var(--card);border:1px solid var(--border);border-radius:var(--r20);overflow:hidden}
+    .panel-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .panel-head h2{font-size:1rem;font-weight:700}
+    .panel-body{padding:20px 22px}
+
+    /* PRODUCT LIST */
+    .prod-item{display:flex;align-items:center;gap:14px;padding:14px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r14);margin-bottom:10px;transition:var(--tr);cursor:pointer}
+    .prod-item:hover{background:rgba(255,255,255,.06);border-color:rgba(139,92,246,.3)}
+    .prod-item.active{border-color:rgba(139,92,246,.5);background:rgba(139,92,246,.07)}
+    .prod-thumb{width:52px;height:52px;border-radius:10px;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;overflow:hidden}
+    .prod-thumb img{width:100%;height:100%;object-fit:cover}
+    .prod-meta{flex:1;min-width:0}
+    .prod-name{font-size:.9rem;font-weight:600;truncate:nowrap;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .prod-price{font-size:.8rem;color:var(--tx2);margin-top:2px}
+    .prod-actions{display:flex;gap:6px;flex-shrink:0}
+    .ia{width:28px;height:28px;border:none;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.8rem;transition:var(--trf)}
+    .ia-up{background:rgba(255,255,255,.06);color:var(--tx2)}
+    .ia-up:hover{background:rgba(255,255,255,.12)}
+    .ia-dn{background:rgba(255,255,255,.06);color:var(--tx2)}
+    .ia-dn:hover{background:rgba(255,255,255,.12)}
+    .ia-del{background:rgba(239,68,68,.15);color:#fca5a5}
+    .ia-del:hover{background:rgba(239,68,68,.3)}
+
+    .btn-add{width:100%;background:rgba(139,92,246,.1);border:2px dashed rgba(139,92,246,.35);color:#c4b5fd;padding:12px;border-radius:var(--r14);font-family:'Outfit',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;transition:var(--tr);margin-top:4px}
+    .btn-add:hover{background:rgba(139,92,246,.18);border-color:rgba(139,92,246,.6)}
+
+    /* EDITOR */
+    .editor-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px;text-align:center;color:var(--tx3)}
+    .editor-empty svg{margin-bottom:14px;opacity:.3}
+    .editor-empty p{font-size:.9rem}
+
+    .fg2{margin-bottom:16px}
+    .fg2 label{display:block;font-size:.78rem;font-weight:600;color:var(--tx2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+    .fg2 input,.fg2 textarea,.fg2 select{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r8);padding:10px 13px;color:var(--tx);font-family:'Outfit',sans-serif;font-size:.9rem;outline:none;transition:var(--trf);resize:vertical}
+    .fg2 input:focus,.fg2 textarea:focus,.fg2 select:focus{border-color:var(--accent);background:rgba(139,92,246,.06);box-shadow:0 0 0 3px rgba(139,92,246,.12)}
+    .fg2 select option{background:#111827}
+    .fg2 textarea{min-height:72px}
+    .fr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+    /* IMG UPLOAD */
+    .img-area{border:2px dashed var(--border);border-radius:var(--r14);padding:20px;text-align:center;cursor:pointer;transition:var(--tr);position:relative;overflow:hidden}
+    .img-area:hover{border-color:rgba(139,92,246,.5);background:rgba(139,92,246,.04)}
+    .img-area input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+    .img-prev{width:100%;max-height:140px;object-fit:cover;border-radius:8px;margin-top:12px;display:none}
+    .img-prev.on{display:block}
+    .img-clear{background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.3);color:#fca5a5;padding:4px 12px;border-radius:6px;font-family:'Outfit',sans-serif;font-size:.75rem;font-weight:600;cursor:pointer;transition:var(--trf);display:none;margin-top:8px}
+    .img-clear.on{display:inline-block}
+    .img-clear:hover{background:rgba(239,68,68,.35)}
+
+    /* SIDEBAR PANELS */
+    .side-panel{background:var(--card);border:1px solid var(--border);border-radius:var(--r20);overflow:hidden;margin-bottom:20px}
+    .side-panel-head{padding:14px 18px;border-bottom:1px solid var(--border);font-size:.9rem;font-weight:700;display:flex;align-items:center;gap:8px}
+    .side-panel-body{padding:16px 18px}
+
+    /* STATUS */
+    .status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+    .status-ok{background:#10b981;box-shadow:0 0 8px #10b981}
+    .status-er{background:#ef4444;box-shadow:0 0 8px #ef4444}
+    .status-ld{background:#f59e0b;animation:pd 1s ease-in-out infinite}
+    @keyframes pd{0%,100%{opacity:1}50%{opacity:.4}}
+
+    /* TOAST */
+    .toast-c{position:fixed;bottom:28px;right:28px;z-index:500;display:flex;flex-direction:column;gap:10px;pointer-events:none}
+    .toast{background:#1e293b;border:1px solid var(--border);border-radius:var(--r14);padding:14px 18px;font-size:.88rem;font-weight:500;color:var(--tx);display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateX(120%);transition:transform .35s cubic-bezier(.34,1.56,.64,1);max-width:320px;pointer-events:all}
+    .toast.show{transform:translateX(0)}
+    .toast.ok{border-left:3px solid #10b981}
+    .toast.er{border-left:3px solid #ef4444}
+    .toast.in{border-left:3px solid #8b5cf6}
+    .toast.wr{border-left:3px solid #f59e0b}
+
+    ::-webkit-scrollbar{width:5px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:100px}
+
+    @media(max-width:960px){.app-body{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+
+<div class="bg-orbs" aria-hidden="true">
+  <div class="orb orb-1"></div><div class="orb orb-2"></div>
+</div>
+
+<!-- ═══════════════ LOGIN ═══════════════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">🛡</div>
+    <h1>管理员登录</h1>
+    <p>此页面仅限站长使用，请输入管理密码</p>
+    <form id="login-form" novalidate>
+      <div class="fg">
+        <label for="l-pass">管理密码</label>
+        <input type="password" id="l-pass" placeholder="输入你设置的管理密码" autofocus/>
+      </div>
+      <button type="submit" class="btn-login">登录管理后台</button>
+      <div class="login-err" id="login-err">密码错误，请重试</div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══════════════ SETUP GUIDE ═══════════════ -->
+<div id="setup-screen">
+  <div class="setup-box">
+    <h2 style="margin-bottom:6px">🚀 初次配置向导</h2>
+    <p style="color:var(--tx2);font-size:.88rem;margin-bottom:22px">需要配置一次 GitHub Gist 作为数据源，之后就永久使用，无需服务器。</p>
+
+    <div class="step">
+      <div class="step-title"><span class="step-num">1</span>创建 GitHub Gist</div>
+      <p style="font-size:.85rem;color:var(--tx2);margin-bottom:10px">点击下方链接，登录 GitHub 后创建一个新的 Gist：</p>
+      <a href="https://gist.github.com/new" target="_blank" style="color:#a5f3fc;font-size:.88rem;text-decoration:none;display:inline-flex;align-items:center;gap:5px;background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.25);padding:7px 14px;border-radius:8px;transition:all .2s" onmouseover="this.style.background='rgba(6,182,212,.2)'" onmouseout="this.style.background='rgba(6,182,212,.1)'">🔗 gist.github.com/new</a>
+    </div>
+
+    <div class="step">
+      <div class="step-title"><span class="step-num">2</span>填写 Gist 内容</div>
+      <p style="font-size:.85rem;color:var(--tx2);margin-bottom:10px">文件名填 <code style="color:#c4b5fd;background:rgba(139,92,246,.15);padding:2px 6px;border-radius:4px">data.json</code>，内容粘贴如下（选择 <strong>Public</strong>）：</p>
+      <div class="code-block" id="template-code">{
+  "products": [],
+  "settings": {
+    "email": "",
+    "siteName": "AI 卡密站",
+    "siteDesc": "精选主流 AI 工具卡密，安全稳定，即买即用。",
+    "qrImage": "",
+    "contactExtra": ""
+  }
+}</div>
+      <button class="copy-btn" onclick="copyTemplate()">复制</button>
+    </div>
+
+    <div class="step">
+      <div class="step-title"><span class="step-num">3</span>获取并填入 Raw URL</div>
+      <p style="font-size:.85rem;color:var(--tx2);margin-bottom:10px">创建后点 Gist 页面右上角 <strong>Raw</strong> 按钮，复制地址栏链接（以 <code style="color:#c4b5fd;background:rgba(139,92,246,.15);padding:2px 6px;border-radius:4px">https://gist.githubusercontent.com/</code> 开头）：</p>
+      <div class="fg-url">
+        <label for="setup-raw-url">Gist Raw URL</label>
+        <input type="url" id="setup-raw-url" placeholder="https://gist.githubusercontent.com/你的用户名/xxx/raw/data.json"/>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-title"><span class="step-num">4</span>填入 GitHub Token（用于写入数据）</div>
+      <p style="font-size:.85rem;color:var(--tx2);margin-bottom:8px">前往 <a href="https://github.com/settings/tokens/new?scopes=gist&description=AI%E5%8D%A1%E5%AF%86%E7%AB%99%E7%AE%A1%E7%90%86" target="_blank" style="color:#a5f3fc">GitHub Token 生成页</a>，勾选 <strong>gist</strong> 权限，生成后粘贴到下方：</p>
+      <div class="fg-url">
+        <label for="setup-token">GitHub Personal Access Token</label>
+        <input type="password" id="setup-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"/>
+      </div>
+      <p style="font-size:.78rem;color:var(--tx3);margin-top:8px">⚠️ Token 只保存在你自己的浏览器 localStorage 中，不会上传到任何地方</p>
+    </div>
+
+    <button class="btn-complete" onclick="completeSetup()">✅ 完成配置，进入管理后台</button>
+    <div class="setup-err" id="setup-err">请填写完整的 Gist Raw URL 和 GitHub Token</div>
+  </div>
+</div>
+
+<!-- ═══════════════ MAIN APP ═══════════════ -->
+<div id="app">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-in">
+      <div class="topbar-left">
+        <div class="tb-logo">✦</div>
+        <span class="tb-title">管理后台</span>
+        <span class="tb-badge">ADMIN</span>
+      </div>
+      <div class="topbar-right">
+        <a href="index.html" target="_blank" class="btn-preview">🔗 预览公开页</a>
+        <button class="btn-save-all" id="btn-save-all" onclick="pushToGist()">
+          <span id="save-icon">☁️</span> 发布到 Gist
+        </button>
+        <button class="btn-logout" onclick="logout()">退出</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="app-body">
+
+    <!-- LEFT: PRODUCT LIST + EDITOR -->
+    <div>
+      <!-- Product list -->
+      <div class="panel" style="margin-bottom:20px">
+        <div class="panel-head">
+          <h2>📦 产品列表</h2>
+          <span id="prod-count" style="font-size:.8rem;color:var(--tx2)">0 个产品</span>
+        </div>
+        <div class="panel-body">
+          <div id="prod-list"></div>
+          <button class="btn-add" onclick="addProduct()">＋ 添加新产品</button>
+        </div>
+      </div>
+
+      <!-- Editor -->
+      <div class="panel">
+        <div class="panel-head">
+          <h2>✏️ 编辑产品</h2>
+          <span id="editing-label" style="font-size:.8rem;color:var(--tx2)">未选中</span>
+        </div>
+        <div class="panel-body" id="editor-body">
+          <div class="editor-empty">
+            <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+            <p>从左侧点击一个产品开始编辑<br/>或点击「添加新产品」</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDEBAR -->
+    <div>
+
+      <!-- Status -->
+      <div class="side-panel">
+        <div class="side-panel-head">
+          <span id="status-dot" class="status-dot status-ld"></span>
+          数据源状态
+        </div>
+        <div class="side-panel-body">
+          <div style="font-size:.82rem;color:var(--tx2);margin-bottom:10px" id="status-text">正在连接 Gist…</div>
+          <div style="font-size:.75rem;color:var(--tx3);word-break:break-all" id="gist-url-display"></div>
+        </div>
+      </div>
+
+      <!-- Settings -->
+      <div class="side-panel">
+        <div class="side-panel-head">⚙️ 站点设置</div>
+        <div class="side-panel-body">
+          <div class="fg2">
+            <label for="s-name">站点名称</label>
+            <input type="text" id="s-name" placeholder="AI 卡密站"/>
+          </div>
+          <div class="fg2">
+            <label for="s-desc">站点简介</label>
+            <textarea id="s-desc" rows="2" placeholder="网站描述…"></textarea>
+          </div>
+          <div class="fg2">
+            <label for="s-email">QQ 邮箱（接收投诉）</label>
+            <input type="email" id="s-email" placeholder="xxxxxx@qq.com"/>
+          </div>
+          <div class="fg2">
+            <label>联系方式图片（二维码）</label>
+            <div class="img-area" id="qr-area" onclick="document.getElementById('qr-input').click()">
+              <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="opacity:.4;margin:0 auto 6px;display:block"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+              <div style="font-size:.8rem;color:var(--tx2)">点击上传联系二维码</div>
+              <input type="file" id="qr-input" accept="image/*" onclick="event.stopPropagation()" onchange="handleQrUpload(event)"/>
+              <img class="img-prev" id="qr-prev" src="" alt="二维码预览"/>
+            </div>
+            <button class="img-clear" id="qr-clear" onclick="clearQr()">✕ 删除图片</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Token & Config -->
+      <div class="side-panel">
+        <div class="side-panel-head">🔑 重新配置</div>
+        <div class="side-panel-body">
+          <div class="fg2">
+            <label for="cfg-token">GitHub Token</label>
+            <input type="password" id="cfg-token" placeholder="ghp_xxx…"/>
+          </div>
+          <div class="fg2">
+            <label for="cfg-url">Gist Raw URL</label>
+            <input type="url" id="cfg-url" placeholder="https://gist.githubusercontent.com/…"/>
+          </div>
+          <button onclick="saveConfig()" style="width:100%;background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--tx2);padding:9px;border-radius:var(--r8);font-family:'Outfit',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;transition:var(--trf)">保存配置</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast-c" id="toast-c"></div>
+
+<script>
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+const PASS_KEY  = 'admin_pass_hash';
+const GIST_KEY  = 'admin_gist_raw';
+const TOKEN_KEY = 'admin_gh_token';
+const GIST_ID_KEY = 'admin_gist_id';
+
+let data = { products: [], settings: {} };
+let editingIdx = -1;
+let editImgDataUrl = '';
+
+// ══════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function initAuth() {
+  // Check if password is set
+  const storedHash = localStorage.getItem(PASS_KEY);
+  if (!storedHash) {
+    // First time: show setup to set password
+    const pass = prompt('首次使用，请设置管理密码（至少6位）：');
+    if (!pass || pass.length < 6) { alert('密码至少需要6位！请刷新重试。'); return; }
+    const confirm = prompt('再次输入密码确认：');
+    if (pass !== confirm) { alert('两次密码不一致！请刷新重试。'); return; }
+    localStorage.setItem(PASS_KEY, await sha256(pass));
+    showToast('密码设置成功', 'ok');
+  }
+  // Show login screen
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+document.getElementById('login-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const pass = document.getElementById('l-pass').value;
+  const hash = await sha256(pass);
+  if (hash === localStorage.getItem(PASS_KEY)) {
+    document.getElementById('login-screen').style.display = 'none';
+    afterLogin();
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+    document.getElementById('l-pass').value = '';
+  }
+});
+
+function afterLogin() {
+  const rawUrl   = localStorage.getItem(GIST_KEY);
+  const token    = localStorage.getItem(TOKEN_KEY);
+  if (!rawUrl || !token) {
+    // Show setup guide
+    document.getElementById('setup-screen').style.display = 'flex';
+  } else {
+    showApp();
+  }
+}
+
+function logout() {
+  if (!confirm('确定退出管理后台？')) return;
+  location.reload();
+}
+
+// ══════════════════════════════════════════
+//  SETUP
+// ══════════════════════════════════════════
+function copyTemplate() {
+  const text = document.getElementById('template-code').textContent;
+  navigator.clipboard.writeText(text).then(() => showToast('已复制模板数据', 'ok')).catch(() => showToast('复制失败，请手动选择', 'er'));
+}
+
+async function completeSetup() {
+  const url   = document.getElementById('setup-raw-url').value.trim();
+  const token = document.getElementById('setup-token').value.trim();
+  const err   = document.getElementById('setup-err');
+  if (!url || !token) { err.style.display = 'block'; return; }
+  if (!url.startsWith('https://gist.githubusercontent.com/')) {
+    err.textContent = 'URL 格式不对，需以 https://gist.githubusercontent.com/ 开头'; err.style.display = 'block'; return;
+  }
+  err.style.display = 'none';
+  // Extract gist ID from URL
+  const parts = url.split('/');
+  const gistId = parts[5]; // https://gist.githubusercontent.com/USER/GISTID/raw/FILE
+  localStorage.setItem(GIST_KEY, url);
+  localStorage.setItem(TOKEN_KEY, token);
+  localStorage.setItem(GIST_ID_KEY, gistId);
+  document.getElementById('setup-screen').style.display = 'none';
+  showApp();
+}
+
+// ══════════════════════════════════════════
+//  APP
+// ══════════════════════════════════════════
+async function showApp() {
+  document.getElementById('app').style.display = 'block';
+  const rawUrl = localStorage.getItem(GIST_KEY) || '';
+  document.getElementById('gist-url-display').textContent = rawUrl.replace('https://gist.githubusercontent.com/','gist.githubusercontent.com/');
+  document.getElementById('cfg-url').value   = rawUrl;
+  document.getElementById('cfg-token').value = localStorage.getItem(TOKEN_KEY) || '';
+  await fetchFromGist();
+}
+
+async function fetchFromGist() {
+  const rawUrl = localStorage.getItem(GIST_KEY);
+  if (!rawUrl) return;
+  setStatus('ld', '正在加载数据…');
+  try {
+    const res = await fetch(rawUrl + '?t=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    data = await res.json();
+    data.products = data.products || [];
+    data.settings = data.settings || {};
+    setStatus('ok', '数据已同步 · ' + new Date().toLocaleTimeString());
+    renderAll();
+    showToast('已从 Gist 加载最新数据', 'ok');
+  } catch(e) {
+    setStatus('er', '加载失败: ' + e.message);
+    showToast('Gist 加载失败，检查 URL 配置', 'er');
+  }
+}
+
+function setStatus(type, msg) {
+  const dot  = document.getElementById('status-dot');
+  const text = document.getElementById('status-text');
+  dot.className = 'status-dot status-' + type;
+  text.textContent = msg;
+}
+
+async function pushToGist() {
+  const token  = localStorage.getItem(TOKEN_KEY);
+  const gistId = localStorage.getItem(GIST_ID_KEY);
+  if (!token || !gistId) { showToast('Token 或 Gist ID 未配置', 'er'); return; }
+
+  // Sync settings from form
+  syncSettingsFromForm();
+
+  const btn  = document.getElementById('btn-save-all');
+  const icon = document.getElementById('save-icon');
+  btn.classList.add('saving'); icon.textContent = '⏳';
+
+  try {
+    const res = await fetch('https://api.github.com/gists/' + gistId, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': 'token ' + token,
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.github.v3+json',
+      },
+      body: JSON.stringify({
+        files: {
+          'data.json': { content: JSON.stringify(data, null, 2) }
+        }
+      })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || 'HTTP ' + res.status);
+    }
+    setStatus('ok', '已发布 · ' + new Date().toLocaleTimeString());
+    showToast('✅ 已成功发布到 Gist！公开页刷新即可看到', 'ok');
+  } catch(e) {
+    showToast('发布失败: ' + e.message, 'er');
+    setStatus('er', '发布失败: ' + e.message);
+  } finally {
+    btn.classList.remove('saving'); icon.textContent = '☁️';
+  }
+}
+
+function saveConfig() {
+  const url   = document.getElementById('cfg-url').value.trim();
+  const token = document.getElementById('cfg-token').value.trim();
+  if (!url || !token) { showToast('请填写完整', 'er'); return; }
+  const parts = url.split('/');
+  localStorage.setItem(GIST_KEY, url);
+  localStorage.setItem(TOKEN_KEY, token);
+  localStorage.setItem(GIST_ID_KEY, parts[5]);
+  document.getElementById('gist-url-display').textContent = url.replace('https://gist.githubusercontent.com/','gist.githubusercontent.com/');
+  showToast('配置已保存', 'ok');
+  fetchFromGist();
+}
+
+// ══════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════
+const TAG_META = {
+  hot:['tag-hot','🔥 热销'], new:['tag-new','✨ 新品'],
+  sale:['tag-sale','💰 优惠'], popular:['tag-popular','⭐ 精选']
+};
+
+function renderAll() {
+  renderList();
+  renderSettings();
+}
+
+function renderList() {
+  const list = document.getElementById('prod-list');
+  list.innerHTML = '';
+  data.products.forEach((p, i) => {
+    const item = document.createElement('div');
+    item.className = 'prod-item' + (i === editingIdx ? ' active' : '');
+    item.dataset.idx = i;
+    item.onclick = () => openEditor(i);
+    item.innerHTML = `
+      <div class="prod-thumb">${p.img ? '<img src="'+p.img+'" alt=""/>' : esc(p.icon||'📦')}</div>
+      <div class="prod-meta">
+        <div class="prod-name">${esc(p.title||'未命名产品')}</div>
+        <div class="prod-price">¥${esc(p.price||'0')} ${esc(p.unit||'')}</div>
+      </div>
+      <div class="prod-actions" onclick="event.stopPropagation()">
+        <button class="ia ia-up" onclick="moveProduct(${i},-1)" title="上移">↑</button>
+        <button class="ia ia-dn" onclick="moveProduct(${i},1)"  title="下移">↓</button>
+        <button class="ia ia-del" onclick="deleteProduct(${i})" title="删除">✕</button>
+      </div>`;
+    list.appendChild(item);
+  });
+  document.getElementById('prod-count').textContent = data.products.length + ' 个产品';
+}
+
+function renderSettings() {
+  const s = data.settings || {};
+  document.getElementById('s-name').value  = s.siteName || '';
+  document.getElementById('s-desc').value  = s.siteDesc || '';
+  document.getElementById('s-email').value = s.email    || '';
+  if (s.qrImage) {
+    document.getElementById('qr-prev').src = s.qrImage;
+    document.getElementById('qr-prev').classList.add('on');
+    document.getElementById('qr-clear').classList.add('on');
+  }
+}
+
+function syncSettingsFromForm() {
+  data.settings = data.settings || {};
+  data.settings.siteName = document.getElementById('s-name').value.trim();
+  data.settings.siteDesc = document.getElementById('s-desc').value.trim();
+  data.settings.email    = document.getElementById('s-email').value.trim();
+}
+
+// ══════════════════════════════════════════
+//  PRODUCT CRUD
+// ══════════════════════════════════════════
+function addProduct() {
+  data.products.push({ id: uid(), icon:'📦', title:'新产品', desc:'', price:'', original:'', unit:'', tag:'', img:'' });
+  openEditor(data.products.length - 1);
+  renderList();
+}
+
+function deleteProduct(i) {
+  if (!confirm('确定删除「' + (data.products[i].title||'此产品') + '」吗？')) return;
+  data.products.splice(i, 1);
+  if (editingIdx === i) { editingIdx = -1; resetEditor(); }
+  else if (editingIdx > i) editingIdx--;
+  renderList();
+  showToast('已删除', 'in');
+}
+
+function moveProduct(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= data.products.length) return;
+  [data.products[i], data.products[j]] = [data.products[j], data.products[i]];
+  if (editingIdx === i) editingIdx = j;
+  else if (editingIdx === j) editingIdx = i;
+  renderList();
+}
+
+// ══════════════════════════════════════════
+//  EDITOR
+// ══════════════════════════════════════════
+function openEditor(i) {
+  editingIdx = i;
+  editImgDataUrl = data.products[i].img || '';
+  const p = data.products[i];
+  document.getElementById('editing-label').textContent = p.title || '未命名';
+  document.getElementById('editor-body').innerHTML = buildEditorHtml(p);
+  // Attach live update listeners
+  ['e-title','e-icon','e-desc','e-price','e-orig','e-unit','e-tag'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', syncEditorToData);
+  });
+  document.getElementById('e-tag').addEventListener('change', syncEditorToData);
+  if (p.img) {
+    document.getElementById('e-img-prev').src = p.img;
+    document.getElementById('e-img-prev').classList.add('on');
+    document.getElementById('e-img-clear').classList.add('on');
+  }
+  renderList();
+}
+
+function buildEditorHtml(p) {
+  const tags = ['','hot','new','sale','popular'];
+  const tagOpts = tags.map(t => `<option value="${t}" ${p.tag===t?'selected':''}>${t?({hot:'🔥 热销',new:'✨ 新品',sale:'💰 优惠',popular:'⭐ 精选'}[t]):'无标签'}</option>`).join('');
+  return `
+    <div class="fr">
+      <div class="fg2"><label for="e-title">产品名称</label><input id="e-title" type="text" value="${esc(p.title)}" placeholder="ChatGPT Plus"/></div>
+      <div class="fg2"><label for="e-icon">图标 Emoji</label><input id="e-icon" type="text" value="${esc(p.icon)}" placeholder="🤖" maxlength="4"/></div>
+    </div>
+    <div class="fg2"><label for="e-desc">简介描述</label><textarea id="e-desc" rows="3" placeholder="产品亮点…">${esc(p.desc)}</textarea></div>
+    <div class="fr">
+      <div class="fg2"><label for="e-price">现价（元）</label><input id="e-price" type="text" value="${esc(p.price)}" placeholder="29.9"/></div>
+      <div class="fg2"><label for="e-orig">原价（可留空）</label><input id="e-orig" type="text" value="${esc(p.original)}" placeholder="139"/></div>
+    </div>
+    <div class="fr">
+      <div class="fg2"><label for="e-unit">单位</label><input id="e-unit" type="text" value="${esc(p.unit)}" placeholder="/ 个月"/></div>
+      <div class="fg2"><label for="e-tag">标签</label><select id="e-tag">${tagOpts}</select></div>
+    </div>
+    <div class="fg2">
+      <label>产品图片</label>
+      <div class="img-area" onclick="document.getElementById('e-img-input').click()">
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="opacity:.4;margin:0 auto 6px;display:block"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+        <div style="font-size:.8rem;color:var(--tx2)">点击上传产品图片</div>
+        <input type="file" id="e-img-input" accept="image/*" onclick="event.stopPropagation()" onchange="handleEditorImg(event)"/>
+        <img class="img-prev" id="e-img-prev" src="" alt="预览"/>
+      </div>
+      <button class="img-clear" id="e-img-clear" onclick="clearEditorImg()">✕ 删除图片</button>
+    </div>`;
+}
+
+function syncEditorToData() {
+  if (editingIdx < 0) return;
+  const p = data.products[editingIdx];
+  p.title    = document.getElementById('e-title').value;
+  p.icon     = document.getElementById('e-icon').value || '📦';
+  p.desc     = document.getElementById('e-desc').value;
+  p.price    = document.getElementById('e-price').value;
+  p.original = document.getElementById('e-orig').value;
+  p.unit     = document.getElementById('e-unit').value;
+  p.tag      = document.getElementById('e-tag').value;
+  document.getElementById('editing-label').textContent = p.title || '未命名';
+  document.getElementById('prod-list').querySelectorAll('.prod-item').forEach((el,i) => {
+    if (i === editingIdx) {
+      el.querySelector('.prod-name').textContent = p.title || '未命名产品';
+      el.querySelector('.prod-price').textContent = '¥' + (p.price||'0') + ' ' + (p.unit||'');
+      const thumb = el.querySelector('.prod-thumb');
+      if (!p.img) thumb.textContent = p.icon||'📦';
+    }
+  });
+}
+
+function handleEditorImg(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    editImgDataUrl = ev.target.result;
+    if (editingIdx >= 0) data.products[editingIdx].img = ev.target.result;
+    const prev = document.getElementById('e-img-prev');
+    prev.src = ev.target.result; prev.classList.add('on');
+    document.getElementById('e-img-clear').classList.add('on');
+    renderList();
+    showToast('图片已上传', 'ok');
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearEditorImg() {
+  if (editingIdx >= 0) data.products[editingIdx].img = '';
+  editImgDataUrl = '';
+  const prev = document.getElementById('e-img-prev');
+  prev.src = ''; prev.classList.remove('on');
+  document.getElementById('e-img-clear').classList.remove('on');
+  document.getElementById('e-img-input').value = '';
+  renderList();
+}
+
+function resetEditor() {
+  document.getElementById('editing-label').textContent = '未选中';
+  document.getElementById('editor-body').innerHTML = '<div class="editor-empty"><svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg><p>从左侧点击一个产品开始编辑</p></div>';
+}
+
+// QR
+function handleQrUpload(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    data.settings = data.settings || {};
+    data.settings.qrImage = ev.target.result;
+    document.getElementById('qr-prev').src = ev.target.result;
+    document.getElementById('qr-prev').classList.add('on');
+    document.getElementById('qr-clear').classList.add('on');
+    showToast('二维码已上传', 'ok');
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearQr() {
+  if (data.settings) data.settings.qrImage = '';
+  document.getElementById('qr-prev').src = '';
+  document.getElementById('qr-prev').classList.remove('on');
+  document.getElementById('qr-clear').classList.remove('on');
+  document.getElementById('qr-input').value = '';
+}
+
+// ══════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════
+function uid() { return Math.random().toString(36).slice(2,10) + Date.now().toString(36); }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function showToast(msg, type) {
+  const icons = {ok:'✅',er:'❌',in:'💡',wr:'⚠️'};
+  const t = document.createElement('div');
+  t.className = 'toast ' + (type||'in');
+  t.innerHTML = (icons[type]||'💡') + ' ' + esc(msg);
+  document.getElementById('toast-c').appendChild(t);
+  requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3500);
+}
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+initAuth();
+</script>
+</body>
+</html>

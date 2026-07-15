@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>AI 低价卡密 · 优质分享平台</title>
+  <meta name="description" content="高性价比 AI 工具卡密，安全稳定，即买即用。"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#070b14;--card:rgba(255,255,255,0.04);--card-hov:rgba(255,255,255,0.08);
+      --border:rgba(255,255,255,0.08);--border-hov:rgba(139,92,246,0.5);
+      --accent:#8b5cf6;--accent2:#06b6d4;
+      --grad:linear-gradient(135deg,#8b5cf6 0%,#06b6d4 100%);
+      --grad-card:linear-gradient(135deg,rgba(139,92,246,0.15) 0%,rgba(6,182,212,0.08) 100%);
+      --tx:#f8fafc;--tx2:#94a3b8;--tx3:#475569;
+      --r8:8px;--r14:14px;--r20:20px;--r28:28px;
+      --shadow:0 8px 32px rgba(0,0,0,.4),0 2px 8px rgba(0,0,0,.3);
+      --glow:0 0 40px rgba(139,92,246,.2);
+      --tr:all .35s cubic-bezier(.4,0,.2,1);--trf:all .18s cubic-bezier(.4,0,.2,1);
+    }
+    html{scroll-behavior:smooth}
+    body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden;line-height:1.6}
+
+    /* BG */
+    .bg-orbs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+    .orb{position:absolute;border-radius:50%;filter:blur(100px);opacity:.12;animation:orbF linear infinite}
+    .orb-1{width:600px;height:600px;background:#8b5cf6;top:-200px;left:-100px;animation-duration:20s}
+    .orb-2{width:500px;height:500px;background:#06b6d4;bottom:-150px;right:-100px;animation-duration:25s;animation-direction:reverse}
+    .orb-3{width:350px;height:350px;background:#f59e0b;top:40%;left:50%;animation-duration:18s;animation-delay:-8s}
+    @keyframes orbF{0%{transform:translate(0,0) scale(1)}33%{transform:translate(40px,-60px) scale(1.05)}66%{transform:translate(-30px,40px) scale(.95)}100%{transform:translate(0,0) scale(1)}}
+
+    .wrap{position:relative;z-index:1}
+
+    /* NAV */
+    nav{position:sticky;top:0;z-index:100;backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);background:rgba(7,11,20,.75);border-bottom:1px solid var(--border);padding:0 2rem}
+    .nav-in{max-width:1280px;margin:0 auto;height:68px;display:flex;align-items:center;justify-content:space-between}
+    .logo{display:flex;align-items:center;gap:10px;font-size:1.25rem;font-weight:700;letter-spacing:-.02em;text-decoration:none;color:var(--tx)}
+    .logo-icon{width:34px;height:34px;background:var(--grad);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem}
+    .nav-links{display:flex;gap:2rem;list-style:none}
+    .nav-links a{color:var(--tx2);text-decoration:none;font-size:.95rem;font-weight:500;transition:var(--trf)}
+    .nav-links a:hover{color:var(--tx)}
+
+    /* HERO */
+    .hero{max-width:1280px;margin:0 auto;padding:100px 2rem 80px;text-align:center}
+    .badge{display:inline-flex;align-items:center;gap:8px;background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.3);border-radius:100px;padding:6px 18px;font-size:.82rem;font-weight:600;color:#c4b5fd;letter-spacing:.05em;text-transform:uppercase;margin-bottom:28px;animation:fsu .6s ease both}
+    .dot{width:7px;height:7px;background:#8b5cf6;border-radius:50%;box-shadow:0 0 8px #8b5cf6;animation:pd 1.5s ease-in-out infinite}
+    @keyframes pd{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.8)}}
+    h1{font-size:clamp(2.6rem,6vw,4.5rem);font-weight:800;letter-spacing:-.04em;line-height:1.1;margin-bottom:24px;animation:fsu .6s .1s ease both}
+    .gt{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .hero p{font-size:1.15rem;color:var(--tx2);max-width:580px;margin:0 auto 48px;animation:fsu .6s .2s ease both}
+    .stats{display:flex;justify-content:center;gap:3rem;flex-wrap:wrap;animation:fsu .6s .3s ease both}
+    .stat-n{font-size:1.8rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .stat-l{font-size:.82rem;color:var(--tx3);margin-top:2px;font-weight:500}
+    @keyframes fsu{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+    /* NOTICE */
+    .notice-sec{max-width:1280px;margin:0 auto;padding:0 2rem 60px}
+    .notice-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+    .notice-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r20);padding:20px 22px;display:flex;align-items:center;gap:16px;transition:var(--tr)}
+    .notice-card:hover{border-color:rgba(139,92,246,.3);background:var(--card-hov)}
+    .ni{font-size:1.8rem;flex-shrink:0}
+    .nt h3{font-size:.95rem;font-weight:700;margin-bottom:4px}
+    .nt p{font-size:.8rem;color:var(--tx2)}
+
+    /* SECTION HEADER */
+    .sh{text-align:center;margin-bottom:48px}
+    .sh h2{font-size:clamp(1.7rem,3.5vw,2.4rem);font-weight:700;letter-spacing:-.03em;margin-bottom:12px}
+    .sh p{color:var(--tx2);font-size:1rem;max-width:440px;margin:0 auto}
+    .sdiv{width:60px;height:3px;background:var(--grad);border-radius:100px;margin:16px auto 0}
+
+    /* PRODUCTS */
+    #products{max-width:1280px;margin:0 auto;padding:60px 2rem 80px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px}
+
+    /* LOADING */
+    .loading-state{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 0;gap:20px;color:var(--tx3)}
+    .spinner{width:36px;height:36px;border:3px solid rgba(139,92,246,.2);border-top-color:#8b5cf6;border-radius:50%;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .error-state{grid-column:1/-1;text-align:center;padding:60px;color:var(--tx3)}
+    .error-state h3{font-size:1.1rem;color:var(--tx2);margin-bottom:8px}
+
+    /* CARD */
+    .card{position:relative;background:var(--card);border:1px solid var(--border);border-radius:var(--r28);overflow:hidden;transition:var(--tr);backdrop-filter:blur(12px);animation:ca .4s ease both}
+    @keyframes ca{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+    .card:hover{background:var(--card-hov);border-color:var(--border-hov);transform:translateY(-6px);box-shadow:var(--shadow),var(--glow)}
+    .cimg{position:relative;width:100%;padding-top:56.25%;background:var(--grad-card);overflow:hidden}
+    .cimg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
+    .card:hover .cimg img{transform:scale(1.04)}
+    .cimg-ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:3rem;background:var(--grad-card)}
+    .ctag{position:absolute;top:14px;left:14px;padding:4px 12px;border-radius:100px;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;backdrop-filter:blur(10px)}
+    .tag-hot{background:rgba(239,68,68,.25);border:1px solid rgba(239,68,68,.4);color:#fca5a5}
+    .tag-new{background:rgba(16,185,129,.25);border:1px solid rgba(16,185,129,.4);color:#6ee7b7}
+    .tag-sale{background:rgba(245,158,11,.25);border:1px solid rgba(245,158,11,.4);color:#fcd34d}
+    .tag-popular{background:rgba(139,92,246,.25);border:1px solid rgba(139,92,246,.4);color:#c4b5fd}
+    .cbody{padding:20px 22px 22px}
+    .cicon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;background:var(--grad-card);border:1px solid rgba(255,255,255,.06);margin-bottom:10px}
+    .ctitle{font-size:1.05rem;font-weight:700;letter-spacing:-.01em;margin-bottom:6px}
+    .cdesc{font-size:.85rem;color:var(--tx2);line-height:1.55;margin-bottom:18px;min-height:40px}
+    .cfoot{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+    .cprice{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+    .pmain{font-size:1.55rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .punit{font-size:.8rem;color:var(--tx3);font-weight:500}
+    .porig{font-size:.82rem;color:var(--tx3);text-decoration:line-through}
+    .btn-buy{background:var(--grad);border:none;color:#fff;padding:9px 20px;border-radius:var(--r8);font-family:'Outfit',sans-serif;font-size:.875rem;font-weight:600;cursor:pointer;transition:var(--tr);box-shadow:0 4px 14px rgba(139,92,246,.3);white-space:nowrap}
+    .btn-buy:hover{transform:translateY(-2px);box-shadow:0 6px 22px rgba(139,92,246,.5)}
+
+    /* COMPLAINT */
+    #complaint{max-width:1280px;margin:0 auto;padding:60px 2rem 80px}
+    .cpc{background:var(--card);border:1px solid var(--border);border-radius:var(--r28);padding:48px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+    .cpi h2{font-size:1.9rem;font-weight:700;letter-spacing:-.03em;margin-bottom:14px}
+    .cpi p{color:var(--tx2);font-size:.95rem;margin-bottom:24px;line-height:1.7}
+    .chip{display:inline-flex;align-items:center;gap:9px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r8);padding:10px 16px;font-size:.88rem;color:var(--tx2);width:100%;transition:var(--trf)}
+    .chip:hover{background:rgba(255,255,255,.07);color:var(--tx)}
+    .fg{margin-bottom:14px}
+    .fg label{display:block;font-size:.82rem;font-weight:600;color:var(--tx2);margin-bottom:7px;letter-spacing:.03em;text-transform:uppercase}
+    .fg input,.fg textarea{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r8);padding:11px 14px;color:var(--tx);font-family:'Outfit',sans-serif;font-size:.95rem;outline:none;transition:var(--trf);resize:vertical}
+    .fg input:focus,.fg textarea:focus{border-color:var(--accent);background:rgba(139,92,246,.06);box-shadow:0 0 0 3px rgba(139,92,246,.12)}
+    .fg textarea{min-height:80px}
+    .btn-sub{width:100%;background:var(--grad);border:none;color:#fff;padding:13px;border-radius:var(--r8);font-family:'Outfit',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:var(--tr);box-shadow:0 4px 14px rgba(139,92,246,.3)}
+    .btn-sub:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(139,92,246,.5)}
+    .chint{font-size:.78rem;color:var(--tx3);margin-top:10px;text-align:center}
+    .chint a{color:var(--accent);text-decoration:none}
+    .chint a:hover{text-decoration:underline}
+
+    /* FOOTER */
+    footer{border-top:1px solid var(--border);padding:60px 2rem 40px}
+    .fin{max-width:1280px;margin:0 auto}
+    .ftop{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;margin-bottom:48px}
+    .fct{font-size:1.1rem;font-weight:700;margin-bottom:14px}
+    .fcd{color:var(--tx2);font-size:.9rem;margin-bottom:24px;line-height:1.65}
+    .qr-wrap{width:180px;height:180px;border-radius:var(--r20);overflow:hidden;border:2px solid var(--border);background:var(--card);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .qr-wrap img{width:100%;height:100%;object-fit:cover}
+    .qr-ph{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--tx3);font-size:.78rem;font-weight:500;text-align:center;padding:12px}
+    .qr-ph svg{opacity:.3}
+    .fbot{border-top:1px solid var(--border);padding-top:28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+    .fbot p{font-size:.82rem;color:var(--tx3)}
+    .fbot-links{display:flex;gap:20px}
+    .fbot-links a{font-size:.82rem;color:var(--tx3);text-decoration:none;transition:var(--trf)}
+    .fbot-links a:hover{color:var(--tx2)}
+
+    /* TOAST */
+    .toast-c{position:fixed;bottom:28px;right:28px;z-index:300;display:flex;flex-direction:column;gap:10px;pointer-events:none}
+    .toast{background:#1e293b;border:1px solid var(--border);border-radius:var(--r14);padding:14px 18px;font-size:.88rem;font-weight:500;color:var(--tx);display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateX(120%);transition:transform .35s cubic-bezier(.34,1.56,.64,1);max-width:300px;pointer-events:all}
+    .toast.show{transform:translateX(0)}
+    .toast.ok{border-left:3px solid #10b981}
+    .toast.er{border-left:3px solid #ef4444}
+    .toast.in{border-left:3px solid #8b5cf6}
+
+    ::-webkit-scrollbar{width:6px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:100px}
+
+    @media(max-width:768px){
+      .hero{padding:60px 1.5rem 50px}
+      .cpc{grid-template-columns:1fr;gap:32px;padding:28px}
+      .ftop{grid-template-columns:1fr;gap:32px}
+      .nav-links{display:none}
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-orbs" aria-hidden="true">
+  <div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div>
+</div>
+
+<div class="wrap">
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-in">
+      <a href="#" class="logo">
+        <span class="logo-icon">✦</span>
+        <span id="site-name">AI 卡密站</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#products">产品</a></li>
+        <li><a href="#complaint">联系 / 投诉</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="badge"><span class="dot"></span>正在热销 · 安全稳定</div>
+    <h1>超低价 <span class="gt">AI 卡密</span><br/>优质分享平台</h1>
+    <p id="site-desc">精选 ChatGPT · Claude · Midjourney 等主流 AI 工具，安全稳定，即买即用，售后保障。</p>
+    <div class="stats">
+      <div><div class="stat-n" id="stat-count">—</div><div class="stat-l">在售产品</div></div>
+      <div><div class="stat-n">99.9%</div><div class="stat-l">稳定率</div></div>
+      <div><div class="stat-n">24h</div><div class="stat-l">售后响应</div></div>
+    </div>
+  </section>
+
+  <!-- NOTICES -->
+  <section class="notice-sec">
+    <div class="notice-grid">
+      <div class="notice-card"><span class="ni">🔒</span><div class="nt"><h3>安全可靠</h3><p>严格审核来源，确保卡密真实有效</p></div></div>
+      <div class="notice-card"><span class="ni">⚡</span><div class="nt"><h3>即买即用</h3><p>购买后立即获取，无需等待</p></div></div>
+      <div class="notice-card"><span class="ni">💎</span><div class="nt"><h3>超低折扣</h3><p>官方价格五折起，长期稳定供货</p></div></div>
+      <div class="notice-card"><span class="ni">🛡</span><div class="nt"><h3>售后保障</h3><p>出现问题24小时内补货或退款</p></div></div>
+    </div>
+  </section>
+
+  <!-- PRODUCTS -->
+  <section id="products">
+    <div class="sh">
+      <h2>热门产品</h2>
+      <p>精选优质 AI 工具卡密，价格透明，按需购买</p>
+      <div class="sdiv"></div>
+    </div>
+    <div class="grid" id="grid">
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>正在加载产品…</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPLAINT -->
+  <section id="complaint">
+    <div class="sh">
+      <h2>意见 &amp; 投诉通道</h2>
+      <p>遇到任何问题，请直接告知，我们第一时间处理</p>
+      <div class="sdiv"></div>
+    </div>
+    <div class="cpc">
+      <div class="cpi">
+        <h2>有问题？<br/><span class="gt">直接说！</span></h2>
+        <p>无论是卡密无效、未收到商品还是其他问题，请填写右侧表单，我们承诺24小时内回复处理。</p>
+        <div class="chip">📧 <span id="email-display">加载中…</span></div>
+      </div>
+      <div>
+        <form id="form" novalidate>
+          <div class="fg"><label for="f-order">订单号 / 产品名称</label><input type="text" id="f-order" placeholder="例：ChatGPT Plus / 2024-0001"/></div>
+          <div class="fg"><label for="f-email">您的联系邮箱</label><input type="email" id="f-email" placeholder="your@email.com"/></div>
+          <div class="fg"><label for="f-msg">问题描述</label><textarea id="f-msg" rows="4" placeholder="请详细描述遇到的问题，以便我们更快处理…"></textarea></div>
+          <button type="submit" class="btn-sub">📨 发送投诉 / 建议</button>
+          <p class="chint">也可直接发邮件至 <a href="#" id="mailto-link">我们的 QQ 邮箱</a></p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="fin">
+      <div class="ftop">
+        <div>
+          <div class="fct">联系方式</div>
+          <div class="fcd">扫描右侧二维码，或通过邮件联系我们。欢迎合作与批量购买咨询。</div>
+          <div class="chip" style="margin-bottom:10px">📧 <span id="email-footer">加载中…</span></div>
+          <div class="chip">💬 <span>24小时响应投诉与建议</span></div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;align-items:center;">
+          <div style="text-align:center;">
+            <div class="qr-wrap" id="qr-wrap">
+              <!-- QR injected by JS -->
+            </div>
+            <p style="font-size:.72rem;color:var(--tx3);margin-top:8px;">扫码联系我</p>
+          </div>
+        </div>
+      </div>
+      <div class="fbot">
+        <p>© <span id="yr"></span> <span id="site-name-footer">AI 卡密站</span> · 用心服务每一位客户</p>
+        <div class="fbot-links"><a href="#products">产品列表</a><a href="#complaint">投诉通道</a></div>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<div class="toast-c" id="toast-c"></div>
+
+<script>
+// ══════════════════════════════════════════
+// ⚠️  CONFIG: 填入你的 Gist Raw URL
+// ══════════════════════════════════════════
+const GIST_RAW_URL = 'YOUR_GIST_RAW_URL_HERE';
+// 格式示例:
+// 'https://gist.githubusercontent.com/你的用户名/GIST_ID/raw/data.json'
+// 管理端会自动把正确的 URL 告诉你
+
+const TAG = { hot:['tag-hot','🔥 热销'], new:['tag-new','✨ 新品'], sale:['tag-sale','💰 优惠'], popular:['tag-popular','⭐ 精选'] };
+
+async function loadData() {
+  try {
+    // 加随机参数防止缓存，确保每次都拿最新数据
+    const url = GIST_RAW_URL + '?t=' + Date.now();
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    return data;
+  } catch(e) {
+    return null;
+  }
+}
+
+function renderProducts(products) {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  if (!products || products.length === 0) {
+    grid.innerHTML = '<div class="error-state"><h3>暂无产品</h3><p>管理员正在整理中，请稍后刷新</p></div>';
+    return;
+  }
+  products.forEach((p, i) => {
+    const card = document.createElement('article');
+    card.className = 'card';
+    card.style.animationDelay = i * 0.06 + 's';
+    const tagMeta = TAG[p.tag];
+    const tagHtml = tagMeta ? `<span class="ctag ${tagMeta[0]}">${tagMeta[1]}</span>` : '';
+    const imgHtml = p.img
+      ? `<img src="${p.img}" alt="${esc(p.title)}" loading="lazy"/>`
+      : `<div class="cimg-ph">${esc(p.icon||'📦')}</div>`;
+    const origHtml = p.original ? `<span class="porig">¥${esc(p.original)}</span>` : '';
+    card.innerHTML = `
+      <div class="cimg">${tagHtml}${imgHtml}</div>
+      <div class="cbody">
+        <div class="cicon">${esc(p.icon||'📦')}</div>
+        <div class="ctitle">${esc(p.title)}</div>
+        <div class="cdesc">${esc(p.desc)}</div>
+        <div class="cfoot">
+          <div class="cprice">
+            <span class="pmain">¥${esc(p.price)}</span>
+            <span class="punit">${esc(p.unit||'')}</span>
+            ${origHtml}
+          </div>
+          <button class="btn-buy" onclick="handleBuy('${esc(p.title)}')">立即购买</button>
+        </div>
+      </div>`;
+    grid.appendChild(card);
+  });
+  document.getElementById('stat-count').textContent = products.length;
+}
+
+function renderSettings(settings) {
+  if (!settings) return;
+  const name = settings.siteName || 'AI 卡密站';
+  document.querySelectorAll('#site-name, #site-name-footer').forEach(el => el.textContent = name);
+  if (settings.siteDesc) document.getElementById('site-desc').textContent = settings.siteDesc;
+  const email = settings.email || '（暂未设置）';
+  document.getElementById('email-display').textContent = email;
+  document.getElementById('email-footer').textContent = email;
+  const mailto = document.getElementById('mailto-link');
+  if (settings.email) mailto.href = 'mailto:' + settings.email + '?subject=投诉建议';
+  const qrWrap = document.getElementById('qr-wrap');
+  if (settings.qrImage) {
+    qrWrap.innerHTML = '<img src="' + settings.qrImage + '" alt="联系二维码"/>';
+  } else {
+    qrWrap.innerHTML = '<div class="qr-ph"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.172a2 2 0 001.414-.586l.828-.828A2 2 0 018.828 5h6.344a2 2 0 011.414.586l.828.828A2 2 0 0018.828 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span>扫码联系</span></div>';
+  }
+}
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
+
+function showToast(msg, type) {
+  const t = document.createElement('div');
+  const icons = {ok:'✅',er:'❌',in:'💡'};
+  t.className = 'toast ' + (type||'in');
+  t.innerHTML = (icons[type]||'💡') + ' ' + esc(msg);
+  document.getElementById('toast-c').appendChild(t);
+  requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3200);
+}
+
+function handleBuy(name) {
+  showToast('已选择「' + name + '」，请联系站长购买 👇', 'in');
+  setTimeout(() => document.getElementById('complaint').scrollIntoView({behavior:'smooth'}), 600);
+}
+
+document.getElementById('form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const email = document.getElementById('f-email').value.trim();
+  const msg   = document.getElementById('f-msg').value.trim();
+  const order = document.getElementById('f-order').value.trim();
+  if (!email || !msg) { showToast('请填写邮箱和问题描述', 'er'); return; }
+  const mailto = document.getElementById('mailto-link').href;
+  if (mailto && mailto !== '#') {
+    const [base] = mailto.split('?');
+    const subject = encodeURIComponent('投诉/建议 - ' + (order || '无订单号'));
+    const body = encodeURIComponent('订单/产品：' + order + '\n联系邮箱：' + email + '\n\n问题描述：\n' + msg);
+    window.location.href = base + '?subject=' + subject + '&body=' + body;
+    showToast('正在打开邮件客户端…', 'ok');
+  } else {
+    showToast('邮箱尚未配置，请稍后再试', 'er');
+  }
+});
+
+async function init() {
+  document.getElementById('yr').textContent = new Date().getFullYear();
+
+  if (GIST_RAW_URL === 'YOUR_GIST_RAW_URL_HERE') {
+    document.getElementById('grid').innerHTML = '<div class="error-state"><h3>⚙️ 需要配置数据源</h3><p>请在管理端设置 Gist URL 后再使用</p></div>';
+    return;
+  }
+
+  const data = await loadData();
+  if (!data) {
+    document.getElementById('grid').innerHTML = '<div class="error-state"><h3>数据加载失败</h3><p>请检查 Gist URL 配置或稍后刷新重试</p></div>';
+    return;
+  }
+  renderProducts(data.products || []);
+  renderSettings(data.settings || {});
+}
+
+init();
+</script>
+</body>
+</html>
