@@ -463,13 +463,38 @@ async function showApp() {
 }
 
 async function fetchFromGist() {
+  const gistId = localStorage.getItem(GIST_ID_KEY);
+  const token  = localStorage.getItem(TOKEN_KEY);
   const rawUrl = localStorage.getItem(GIST_KEY);
-  if (!rawUrl) return;
+  if (!rawUrl && !gistId) return;
+
   setStatus('ld', '正在加载数据…');
   try {
-    const res = await fetch(rawUrl + '?t=' + Date.now());
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    data = await res.json();
+    let fetchedData = null;
+
+    // 优先用 API 加载（实时，无缓存）
+    if (gistId && token) {
+      const apiRes = await fetch('https://api.github.com/gists/' + gistId, {
+        headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github.v3+json' },
+        cache: 'no-store'
+      });
+      if (apiRes.ok) {
+        const gistData = await apiRes.json();
+        const rawContent = gistData.files && gistData.files['data.json'] && gistData.files['data.json'].content;
+        if (rawContent) fetchedData = JSON.parse(rawContent);
+      }
+    }
+
+    // 如果 API 失败（比如 token 过期），降级使用 rawUrl
+    if (!fetchedData && rawUrl) {
+      const res = await fetch(rawUrl + '?t=' + Date.now(), { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      fetchedData = await res.json();
+    }
+
+    if (!fetchedData) throw new Error('数据为空或格式错误');
+
+    data = fetchedData;
     data.products = data.products || [];
     data.settings = data.settings || {};
     setStatus('ok', '数据已同步 · ' + new Date().toLocaleTimeString());
@@ -477,7 +502,7 @@ async function fetchFromGist() {
     showToast('已从 Gist 加载最新数据', 'ok');
   } catch(e) {
     setStatus('er', '加载失败: ' + e.message);
-    showToast('Gist 加载失败，检查 URL 配置', 'er');
+    showToast('Gist 加载失败，检查配置', 'er');
   }
 }
 
