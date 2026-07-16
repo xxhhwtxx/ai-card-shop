@@ -154,11 +154,26 @@
     ::-webkit-scrollbar-track{background:transparent}
     ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:100px}
 
+    /* INTRO MODAL */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:var(--tr)}
+    .modal-overlay.show{opacity:1;pointer-events:all}
+    .intro-modal{background:var(--card);border:1px solid var(--border);border-radius:var(--r28);padding:40px 32px;max-width:480px;width:100%;box-shadow:var(--shadow);position:relative;transform:translateY(20px) scale(0.95);transition:var(--tr);text-align:center}
+    .modal-overlay.show .intro-modal{transform:translateY(0) scale(1)}
+    .btn-close-modal{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.06);border:none;color:var(--tx2);font-size:1.4rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--trf)}
+    .btn-close-modal:hover{background:rgba(255,255,255,0.15);color:var(--tx);transform:rotate(90deg)}
+    .intro-icon{width:56px;height:56px;background:var(--grad);border-radius:16px;display:inline-flex;align-items:center;justify-content:center;font-size:1.8rem;margin-bottom:20px;box-shadow:0 8px 24px rgba(139,92,246,0.4)}
+    .intro-modal h2{font-size:1.5rem;font-weight:700;margin-bottom:12px;letter-spacing:-0.02em;color:var(--tx)}
+    .intro-modal p{color:var(--tx2);font-size:0.95rem;line-height:1.7;margin-bottom:28px;text-align:left}
+    .intro-modal .highlight{color:var(--tx);font-weight:600;background:rgba(139,92,246,0.15);padding:2px 6px;border-radius:6px}
+    .btn-enter{background:var(--grad);border:none;color:#fff;padding:12px 32px;border-radius:var(--r14);font-family:'Outfit',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:var(--tr);box-shadow:0 4px 14px rgba(139,92,246,0.3);width:100%}
+    .btn-enter:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(139,92,246,0.5)}
+
     @media(max-width:768px){
       .hero{padding:60px 1.5rem 50px}
       .cpc{grid-template-columns:1fr;gap:32px;padding:28px}
       .ftop{grid-template-columns:1fr;gap:32px}
       .nav-links{display:none}
+      .intro-modal{padding:32px 24px}
     }
   </style>
 </head>
@@ -274,6 +289,21 @@
 </div>
 
 <div class="toast-c" id="toast-c"></div>
+
+<!-- INTRO MODAL -->
+<div class="modal-overlay" id="intro-modal">
+  <div class="intro-modal">
+    <button class="btn-close-modal" id="btn-close-modal">×</button>
+    <div class="intro-icon">👋</div>
+    <h2>欢迎来到 AI 卡密站</h2>
+    <p>
+      你好！本人是一枚大学生 🎓，搭建这个网站的初衷是帮助大家能够以<span class="highlight">更低的价格体验前沿 AI 技术</span>。<br><br>
+      我直接对接了源头批发商，不仅能把价格打下来，还会提供<b>详细的产品说明</b>和<b>耐心讲解服务</b>，确保大家买得放心、用得舒心。<br><br>
+      👇 欢迎加入网站底部的 <b>QQ 交流群</b>（可以通过邮箱或扫码加我进群），更多专属福利等你来看！！！
+    </p>
+    <button class="btn-enter" id="btn-enter-shop">进入购买</button>
+  </div>
+</div>
 
 <script>
 // ══════════════════════════════════════════
@@ -414,6 +444,24 @@ async function init() {
   }
   renderProducts(data.products || []);
   renderSettings(data.settings || {});
+
+  // Intro Modal Logic
+  const hasSeenIntro = sessionStorage.getItem('seenIntro');
+  if (!hasSeenIntro) {
+    const modal = document.getElementById('intro-modal');
+    setTimeout(() => modal.classList.add('show'), 150); // slight delay for smooth entry
+    
+    const closeModal = () => {
+      modal.classList.remove('show');
+      sessionStorage.setItem('seenIntro', 'true');
+    };
+    
+    document.getElementById('btn-close-modal').addEventListener('click', closeModal);
+    document.getElementById('btn-enter-shop').addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+      if(e.target === modal) closeModal();
+    });
+  }
 }
 
 init();
